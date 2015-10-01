@@ -37,6 +37,18 @@ def max_gauge_reading(data):
     max_gauge_time = readings[max_gauge_height]
     return {"peak_gauge_height": max_gauge_height, "peak_time": max_gauge_time}
 
+def summarize_gauge(gauge_data):
+    gauge_info_data = gauge_data["sourceInfo"]
+    gauge_reading_data = gauge_data["values"]
+    
+    gauge_summary_data = gauge_info(gauge_info_data)
+    max_reading = max_gauge_reading(gauge_reading_data)
+    gauge_summary_data.update(max_reading)
+    return gauge_summary_data
+    
+def gauge_summary_output_line(gauge):
+    return str(gauge["site_code"]), str(gauge["name"]), str(gauge["lat"]), str(gauge["lng"]), str(gauge["h_datum"]), str(gauge["site_type"]), str(gauge["peak_gauge_height"]), str(gauge["peak_time"])
+
 
 state_code = raw_input("Enter state (eg: NJ): ")
 data = get_data_from_usgs(state_code)
@@ -45,11 +57,7 @@ count = 0
 
 for gauge in data["value"]["timeSeries"]:
     count += 1
-    gauge_info_data = gauge["sourceInfo"]
-    gauge_reading_data = gauge["values"]
-    gauge_summary_data = gauge_info(gauge_info_data)
-    max_reading = max_gauge_reading(gauge_reading_data)
-    gauge_summary_data.update(max_reading)
-    print gauge_summary_data
+    gauge_summary = summarize_gauge(gauge)
+    print gauge_summary_output_line(gauge_summary)
     
 print count, " gauges"
