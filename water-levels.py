@@ -22,6 +22,7 @@ def gauge_info(data):
     gauge_info["lat"] = data["geoLocation"]["geogLocation"]["latitude"]
     gauge_info["lng"] = data["geoLocation"]["geogLocation"]["longitude"]
     gauge_info["h_datum"] = data["geoLocation"]["geogLocation"]["srs"]
+    gauge_info["site_type"] = data["siteProperty"][0]["value"]
     return gauge_info
 
 def max_gauge_reading(data):
@@ -40,10 +41,15 @@ def max_gauge_reading(data):
 state_code = raw_input("Enter state (eg: NJ): ")
 data = get_data_from_usgs(state_code)
 
+count = 0
+
 for gauge in data["value"]["timeSeries"]:
+    count += 1
     gauge_info_data = gauge["sourceInfo"]
     gauge_reading_data = gauge["values"]
     gauge_summary_data = gauge_info(gauge_info_data)
     max_reading = max_gauge_reading(gauge_reading_data)
     gauge_summary_data.update(max_reading)
     print gauge_summary_data
+    
+print count, " gauges"
