@@ -2,13 +2,30 @@ import urllib2
 import urllib
 import json
 
+"""
+TITLE: USGS Gauge peak levels
+
+CREATED: 10/1/2015 by Tom Lee
+UPDATED: 1/25/2016 by Tom Lee
+
+DESCRIPTION: Gets the peak USGS guage levels for a State.
+             Returned data is the peak height for every gauge in the state.
+             Before running, modify the query_args in get_data_from_usgs
+             Output format is on-screen display, one row per gauge, "|" limited
+
+STATUS: Works great.
+        Future improvements could improve writing data to an output file,
+        prompting for the date query_arg,
+        or taking multiple States instead of one at a time.
+"""
+
 def get_data_from_usgs(state_code):
-    query_args = {"stateCd": state_code, 
-                  "startDT":"2015-09-30", 
-                  "format": "json", 
-                  "modifiedSince": "P2D", 
+    query_args = {"stateCd": state_code,
+                  "startDT":"2016-01-21",
+                  "format": "json",
+                  "modifiedSince": "P5D",
                   "parameterCd": "00065"}
-                  
+
     encoded_args = urllib.urlencode(query_args)
     url = "http://waterservices.usgs.gov/nwis/iv/?" + encoded_args
     response = urllib2.urlopen(url)
@@ -27,12 +44,12 @@ def gauge_info(data):
 
 def max_gauge_reading(data):
     readings = {}
-    
+
     for reading in data[0]["value"]:
         date_time = reading["dateTime"]
-        gauge_height = reading["value"]
+        gauge_height = float(reading["value"])
         readings[gauge_height] = date_time
-        
+
     max_gauge_height = max(readings)
     max_gauge_time = readings[max_gauge_height]
     return {"peak_gauge_height": max_gauge_height, "peak_time": max_gauge_time}
@@ -40,14 +57,22 @@ def max_gauge_reading(data):
 def summarize_gauge(gauge_data):
     gauge_info_data = gauge_data["sourceInfo"]
     gauge_reading_data = gauge_data["values"]
-    
+
     gauge_summary_data = gauge_info(gauge_info_data)
     max_reading = max_gauge_reading(gauge_reading_data)
     gauge_summary_data.update(max_reading)
     return gauge_summary_data
-    
+
 def gauge_summary_output_line(gauge):
-    return str(gauge["site_code"]), str(gauge["name"]), str(gauge["lat"]), str(gauge["lng"]), str(gauge["h_datum"]), str(gauge["site_type"]), str(gauge["peak_gauge_height"]), str(gauge["peak_time"])
+    gauge_data = [str(gauge["site_code"]),
+                  str(gauge["name"]),
+                  str(gauge["lat"]),
+                  str(gauge["lng"]),
+                  str(gauge["h_datum"]),
+                  str(gauge["site_type"]),
+                  str(gauge["peak_gauge_height"]),
+                  str(gauge["peak_time"])]
+    return "|".join(gauge_data)
 
 
 state_code = raw_input("Enter state (eg: NJ): ")
@@ -59,5 +84,5 @@ for gauge in data["value"]["timeSeries"]:
     count += 1
     gauge_summary = summarize_gauge(gauge)
     print gauge_summary_output_line(gauge_summary)
-    
+
 print count, " gauges"
