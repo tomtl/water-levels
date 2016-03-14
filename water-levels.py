@@ -6,7 +6,7 @@ import json
 TITLE: USGS Gauge peak levels
 
 CREATED: 10/1/2015 by Tom Lee
-UPDATED: 1/25/2016 by Tom Lee
+UPDATED: 3/14/2016 by Tom Lee
 
 DESCRIPTION: Gets the peak USGS guage levels for a State.
              Returned data is the peak height for every gauge in the state.
@@ -21,7 +21,7 @@ STATUS: Works great.
 
 def get_data_from_usgs(state_code):
     query_args = {"stateCd": state_code,
-                  "startDT":"2016-01-21",
+                  "startDT":"2016-03-11",
                   "format": "json",
                   "modifiedSince": "P5D",
                   "parameterCd": "00065"}
@@ -50,8 +50,13 @@ def max_gauge_reading(data):
         gauge_height = float(reading["value"])
         readings[gauge_height] = date_time
 
-    max_gauge_height = max(readings)
-    max_gauge_time = readings[max_gauge_height]
+    try :
+        max_gauge_height = max(readings)
+        max_gauge_time = readings[max_gauge_height]
+    except :
+        max_gauge_height = -999999
+        max_gauge_time = 0
+
     return {"peak_gauge_height": max_gauge_height, "peak_time": max_gauge_time}
 
 def summarize_gauge(gauge_data):
